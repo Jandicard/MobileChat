@@ -1,79 +1,116 @@
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
 
 class ClientHandler implements Runnable {
     private Socket socket;
-    private PrintWriter out;
+    private DataInputStream in;
+    private DataOutputStream out;
     private String username;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket) throws IOException {
         this.socket = socket;
+        this.in = new DataInputStream(socket.getInputStream());
+        this.out = new DataOutputStream(socket.getOutputStream());
     }
 
     public void run() {
         try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.out = new PrintWriter(socket.getOutputStream(), true);
-
-            username = in.readLine();
+            username = in.readUTF();
             ChatServer.addClient(username, this);
 
-            String message;
-            while ((message = in.readLine()) != null) {
-                System.out.println("Recebido de " + username + ": " + message);
+            while (true) {
+                String messageType = in.readUTF();
 
-                if (message.equalsIgnoreCase("/users")) {
-                    sendUserList();
-                } else if (message.startsWith("/send message")) {
-                    handleSendMessage(message);
-                } else {
-                    out.println("Comando não reconhecido.");
+                if (messageType.equals("/text")) {
+                    String message = in.readUTF();
+                    System.out.println("Recebido de " + username + ": " + message);
+
+                    if (message.startsWith("/send message")) {
+                        handleSendMessage(message);
+                    } else if (message.equals("/users")) {
+                        sendUserList();
+                    }
+                } else if (messageType.equals("/file")) {
+                    handleFileTransfer();
                 }
             }
         } catch (IOException e) {
-            System.out.println("Erro com cliente " + username);
+            System.out.println("Erro com cliente " + username + ": " + e.getMessage());
         } finally {
             ChatServer.removeClient(username);
             try {
                 socket.close();
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
         }
     }
 
     private void sendUserList() {
-        StringBuilder userList = new StringBuilder("Usuários conectados:\n");
+        StringBuilder userList = new StringBuilder("/users");
         for (String user : ChatServer.getConnectedUsers()) {
-            userList.append("- ").append(user).append("\n");
+            userList.append(";").append(user);
         }
-        out.println(userList.toString());
+        sendMessage(userList.toString());
     }
 
-    private void handleSendMessage(String message) {
-        // Formato esperado: /send message <destinatario> <mensagem>
-        String[] parts = message.split(" ", 4); // 4 partes: /send + message + destinatario + mensagem
-
+    private void handleSendMessage(String message) throws IOException {
+        String[] parts = message.split(" ", 4);
         if (parts.length < 4) {
-            out.println("Formato inválido. Use: /send message <destinatario> <mensagem>");
+            sendMessage("Formato inválido. Use: /send message <destinatario> <mensagem>");
             return;
         }
 
         String receiver = parts[2];
         String msgContent = parts[3];
+        ChatServer.broadcast(username, receiver, msgContent);
+        sendMessage("Mensagem enviada para " + receiver + ".");
+    }
 
-        ClientHandler recipient = ChatServer.clients.get(receiver);
-
-        if (recipient != null) {
-            recipient.sendMessage(username + ": " + msgContent);
-            out.println("Mensagem enviada para " + receiver + ".");
-        } else {
-            out.println("Usuário " + receiver + " não encontrado.");
+    private void handleFileTransfer() throws IOException {
+        String receiver = in.readUTF();
+        String filename = in.readUTF();
+        int fileSize = in.readInt();
+        byte[] fileData = new byte[fileSize];
+        in.readFully(fileData);
+        File targetDir = new File("RecebeArquivo");
+        if (!targetDir.exists()) {
+            if (!targetDir.mkdirs()) {
+                System.err.println("Erro ao criar diretório RecebeArquivo");
+                return;
+            }
         }
+
+        File receivedFile = new File(targetDir, filename);
+        try {
+            Files.write(receivedFile.toPath(), fileData);
+            System.out.println("Arquivo " + filename + " recebido e salvo em: " + receivedFile.getAbsolutePath());
+        } catch (IOException e) {
+            System.err.println("Erro ao salvar arquivo: " + e.getMessage());
+        }
+
+        ChatServer.sendFile(username, receiver, filename, fileData);
+        sendMessage("Arquivo " + filename + " enviado para " + receiver + ".");
     }
 
     public void sendMessage(String msg) {
-        out.println(msg);
+        try {
+            out.writeUTF("/text");
+            out.writeUTF(msg);
+        } catch (IOException e) {
+            System.err.println("Erro ao enviar mensagem para " + username);
+        }
+    }
+
+    public void sendFile(String sender, String filename, byte[] fileData) {
+        try {
+            out.writeUTF("/file");
+            out.writeUTF(sender);
+            out.writeUTF(filename);
+            out.writeInt(fileData.length);
+            out.write(fileData);
+        } catch (IOException e) {
+            System.err.println("Erro ao enviar arquivo para " + username);
+        }
     }
 }
