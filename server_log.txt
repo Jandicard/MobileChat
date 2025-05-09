@@ -24,3 +24,8 @@ Cliente conectado: 127.0.0.1 - 2025-05-08 23:50:13
 2025-05-08 23:54:53 - Servidor iniciado
 Cliente conectado: 127.0.0.1 - 2025-05-08 23:55:02
 Cliente conectado: 127.0.0.1 - 2025-05-08 23:55:10
+2025-05-09 20:09:50 - Cliente desconectado: Alice
+2025-05-09 20:09:51 - Cliente desconectado: Bob
+2025-05-09 20:09:56 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-09 20:10:00
+Cliente conectado: 127.0.0.1 - 2025-05-09 20:10:07
