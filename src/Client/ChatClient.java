@@ -13,46 +13,40 @@ public class ChatClient {
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
         DataInputStream in = new DataInputStream(socket.getInputStream());
 
-        System.out.print("Digite seu nome de usuário: ");
+        System.out.print("Usuário: ");
         String name = scanner.nextLine();
         out.writeUTF(name);
 
         new Thread(() -> {
             try {
                 while (true) {
-                    String messageType = in.readUTF();
+                    String type = in.readUTF();
 
-                    if (messageType.equals("/text")) {
+                    if (type.equals("/text")) {
                         String msg = in.readUTF();
-
                         if (msg.startsWith("/message ")) {
                             String[] parts = msg.split(" ", 3);
                             if (parts.length >= 3) {
                                 System.out.println(parts[1] + ": " + parts[2]);
-                            } else {
-                                System.out.println(msg);
                             }
                         } else if (msg.startsWith("/users")) {
-                            String[] userList = msg.split(" ");
-                            System.out.println("\nUsuários conectados:");
-                            for (int i = 1; i < userList.length; i++) {
-                                System.out.println("- " + userList[i]);
+                            String[] users = msg.split(" ");
+                            System.out.println("Online:");
+                            for (int i = 1; i < users.length; i++) {
+                                System.out.println("- " + users[i]);
                             }
-                            System.out.println();
                         } else {
                             System.out.println(msg);
                         }
-                    } else if (messageType.equals("/file")) {
+                    } else if (type.equals("/file")) {
                         String sender = in.readUTF();
                         String filename = in.readUTF();
-                        int fileSize = in.readInt();
-                        byte[] fileData = new byte[fileSize];
-                        in.readFully(fileData);
+                        int size = in.readInt();
+                        byte[] data = new byte[size];
+                        in.readFully(data);
 
-                        File receivedFile = new File(filename);
-                        Files.write(receivedFile.toPath(), fileData);
-                        System.out.println(sender + " enviou o arquivo: " + filename + " (" + fileSize + " bytes)");
-                        System.out.println("Arquivo salvo em: " + receivedFile.getAbsolutePath());
+                        Files.write(new File(filename).toPath(), data);
+                        System.out.println(sender + " enviou um arquivo: " + filename);
                     }
                 }
             } catch (IOException e) {
@@ -68,24 +62,21 @@ public class ChatClient {
                 out.writeUTF("/text");
                 out.writeUTF(input);
                 break;
-            } else if (input.equals("/users")) {
-                out.writeUTF("/text");
-                out.writeUTF(input);
-            } else if (input.startsWith("/send message")) {
+            } else if (input.startsWith("/send message") || input.equals("/users")) {
                 out.writeUTF("/text");
                 out.writeUTF(input);
             } else if (input.startsWith("/send file")) {
                 String[] parts = input.split(" ", 4);
                 if (parts.length < 4) {
-                    System.out.println("Formato inválido. Use: /send file <destinatario> <caminho do arquivo>");
+                    System.out.println("Use: /send file <destinatario> <arquivo>");
                     continue;
                 }
 
                 String receiver = parts[2];
-                String filePath = parts[3];
-                handleFileSend(out, receiver, filePath);
+                String path = parts[3];
+                sendFile(out, receiver, path);
             } else {
-                System.out.println("Comando não reconhecido. Use /users, /send message, /send file ou /sair");
+                System.out.println("Comando inválido.");
             }
         }
 
@@ -93,27 +84,25 @@ public class ChatClient {
         scanner.close();
     }
 
-    private static void handleFileSend(DataOutputStream out, String receiver, String filePath) {
+    private static void sendFile(DataOutputStream out, String to, String path) {
         try {
-            File file = new File(filePath);
-
+            File file = new File(path);
             if (!file.exists()) {
-                System.out.println("Arquivo não encontrado: " + filePath);
+                System.out.println("Arquivo não encontrado.");
                 return;
             }
 
-            byte[] fileData = Files.readAllBytes(file.toPath());
-            String filename = file.getName();
+            byte[] data = Files.readAllBytes(file.toPath());
             out.writeUTF("/file");
-            out.writeUTF(receiver);
-            out.writeUTF(filename);
-            out.writeInt(fileData.length);
-            out.write(fileData);
+            out.writeUTF(to);
+            out.writeUTF(file.getName());
+            out.writeInt(data.length);
+            out.write(data);
             out.flush();
 
-            System.out.println("Arquivo " + filename + " (" + fileData.length + " bytes) enviado para " + receiver);
+            System.out.println("Arquivo enviado.");
         } catch (IOException e) {
-            System.err.println("Erro ao enviar o arquivo: " + e.getMessage());
+            System.out.println("Erro ao enviar arquivo.");
         }
     }
 }

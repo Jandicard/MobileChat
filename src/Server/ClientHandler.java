@@ -2,47 +2,42 @@ import java.io.*;
 import java.net.Socket;
 
 class ClientHandler implements Runnable {
-    // Alterado de private para public ou protected para permitir acesso
     public Socket socket;
     private DataInputStream in;
     private DataOutputStream out;
-    private String username;
+    private String name;
 
     public ClientHandler(Socket socket) throws IOException {
         this.socket = socket;
-        this.in = new DataInputStream(socket.getInputStream());
-        this.out = new DataOutputStream(socket.getOutputStream());
+        in = new DataInputStream(socket.getInputStream());
+        out = new DataOutputStream(socket.getOutputStream());
     }
 
     public void run() {
         try {
-            username = in.readUTF();
-            ChatServer.addClient(username, this);
-            System.out.println("Cliente " + username + " registrado com sucesso.");
+            name = in.readUTF();
+            ChatServer.addClient(name, this);
 
             while (true) {
-                String messageType = in.readUTF();
+                String type = in.readUTF();
 
-                if (messageType.equals("/text")) {
-                    String message = in.readUTF();
-                    System.out.println("Recebido de " + username + ": " + message);
+                if (type.equals("/text")) {
+                    String msg = in.readUTF();
 
-                    if (message.startsWith("/send message")) {
-                        handleSendMessage(message);
-                    } else if (message.equals("/users")) {
+                    if (msg.startsWith("/send message")) {
+                        handleMessage(msg);
+                    } else if (msg.equals("/users")) {
                         sendUserList();
-                    } else if (message.equals("/sair")) {
-                        System.out.println("Cliente " + username + " solicitou desconexão.");
+                    } else if (msg.equals("/sair")) {
                         break;
                     }
-                } else if (messageType.equals("/file")) {
-                    handleFileTransfer();
+                } else if (type.equals("/file")) {
+                    handleFile();
                 }
             }
-        } catch (IOException e) {
-            System.out.println("Erro com cliente " + username + ": " + e.getMessage());
+        } catch (IOException ignored) {
         } finally {
-            ChatServer.removeClient(username);
+            ChatServer.removeClient(name);
             try {
                 socket.close();
             } catch (IOException ignored) {
@@ -51,48 +46,31 @@ class ClientHandler implements Runnable {
     }
 
     private void sendUserList() {
-        StringBuilder userList = new StringBuilder("/users");
-        for (String user : ChatServer.getConnectedUsers()) {
-            userList.append(" ").append(user);
-        }
-        sendMessage(userList.toString());
+        StringBuilder list = new StringBuilder("/users");
+        for (String u : ChatServer.getConnectedUsers())
+            list.append(" ").append(u);
+        sendMessage(list.toString());
     }
 
-    private void handleSendMessage(String message) throws IOException {
-        String[] parts = message.split(" ", 4);
+    private void handleMessage(String msg) throws IOException {
+        String[] parts = msg.split(" ", 4);
         if (parts.length < 4) {
-            sendMessage("Formato inválido. Use: /send message <destinatario> <mensagem>");
+            sendMessage("Use: /send message <dest> <mensagem>");
             return;
         }
-
-        String receiver = parts[2];
-        String msgContent = parts[3];
-        ChatServer.broadcast(username, receiver, msgContent);
-        sendMessage("Mensagem enviada para " + receiver + ".");
+        String to = parts[2];
+        String text = parts[3];
+        ChatServer.broadcast(name, to, text);
     }
 
-    private void handleFileTransfer() throws IOException {
-        try {
-            String receiver = in.readUTF();
-            String filename = in.readUTF();
-            int fileSize = in.readInt();
+    private void handleFile() throws IOException {
+        String to = in.readUTF();
+        String filename = in.readUTF();
+        int size = in.readInt();
+        byte[] data = new byte[size];
+        in.readFully(data);
 
-            System.out.println("Transferência de arquivo iniciada: " + username + " -> " + receiver + " (" + filename
-                    + ", " + fileSize + " bytes)");
-
-            byte[] fileData = new byte[fileSize];
-            in.readFully(fileData);
-
-            ChatServer.sendFile(username, receiver, filename, fileData);
-            sendMessage("Arquivo " + filename + " enviado para " + receiver + ".");
-
-            System.out.println(
-                    "Transferência de arquivo concluída: " + username + " -> " + receiver + " (" + filename + ")");
-        } catch (IOException e) {
-            System.err.println("Erro na transferência de arquivo: " + e.getMessage());
-            sendMessage("Erro ao processar o arquivo. Por favor, tente novamente.");
-            throw e;
-        }
+        ChatServer.sendFile(name, to, filename, data);
     }
 
     public void sendMessage(String msg) {
@@ -100,22 +78,19 @@ class ClientHandler implements Runnable {
             out.writeUTF("/text");
             out.writeUTF(msg);
             out.flush();
-        } catch (IOException e) {
-            System.err.println("Erro ao enviar mensagem para " + username + ": " + e.getMessage());
+        } catch (IOException ignored) {
         }
     }
 
-    public void sendFile(String sender, String filename, byte[] fileData) {
+    public void sendFile(String from, String filename, byte[] data) {
         try {
             out.writeUTF("/file");
-            out.writeUTF(sender);
+            out.writeUTF(from);
             out.writeUTF(filename);
-            out.writeInt(fileData.length);
-            out.write(fileData);
+            out.writeInt(data.length);
+            out.write(data);
             out.flush();
-            System.out.println("Arquivo " + filename + " encaminhado de " + sender + " para " + username);
-        } catch (IOException e) {
-            System.err.println("Erro ao enviar arquivo para " + username + ": " + e.getMessage());
+        } catch (IOException ignored) {
         }
     }
 }

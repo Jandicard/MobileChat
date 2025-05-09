@@ -48,3 +48,11 @@ Cliente conectado: 127.0.0.1 - 2025-05-09 00:11:23
 Cliente conectado: 127.0.0.1 - 2025-05-09 00:11:31
 2025-05-09 00:11:33 - Cliente registrado: lucas
 2025-05-09 00:13:29 - Transferência de arquivo: lucas -> jandi (teste_trab.txt, 5 bytes)
+2025-05-09 00:19:16 - Cliente desconectado: lucas
+2025-05-09 00:19:17 - Cliente desconectado: jandi
+2025-05-09 00:19:20 - Servidor ligado.
+Conexão: 127.0.0.1 - 2025-05-09 00:19:34
+2025-05-09 00:19:37 - Conectado: jandi
+Conexão: 127.0.0.1 - 2025-05-09 00:19:42
+2025-05-09 00:19:45 - Conectado: lucas
+2025-05-09 00:21:06 - Arquivo: lucas -> jandi (teste_trab.txt)

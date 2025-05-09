@@ -2,126 +2,91 @@ import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatServer {
     private static final int PORT = 12345;
     private static final ConcurrentHashMap<String, ClientHandler> clients = new ConcurrentHashMap<>();
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static final String LOG_FILE = "server_log.txt";
 
     public static void main(String[] args) throws IOException {
-        ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("Servidor iniciado na porta " + PORT);
-        logServer("Servidor iniciado");
+        ServerSocket server = new ServerSocket(PORT);
+        log("Servidor ligado.");
 
-        try {
-            while (true) {
-                Socket socket = serverSocket.accept();
-                String clientAddress = socket.getInetAddress().getHostAddress();
-                logConnection(clientAddress);
-                System.out.println("Novo cliente conectado: " + clientAddress);
-
-                ClientHandler handler = new ClientHandler(socket);
-                new Thread(handler).start();
-            }
-        } catch (IOException e) {
-            System.err.println("Erro no servidor: " + e.getMessage());
-            logServer("Erro no servidor: " + e.getMessage());
-        } finally {
-            try {
-                serverSocket.close();
-                logServer("Servidor encerrado");
-            } catch (IOException e) {
-                System.err.println("Erro ao fechar servidor: " + e.getMessage());
-            }
+        while (true) {
+            Socket socket = server.accept();
+            logConn(socket.getInetAddress().getHostAddress());
+            new Thread(new ClientHandler(socket)).start();
         }
     }
 
-    public static void broadcast(String sender, String receiver, String message) {
-        ClientHandler recipient = clients.get(receiver);
-        if (recipient != null) {
-            recipient.sendMessage("/message " + sender + " " + message);
-            System.out.println("Mensagem encaminhada: " + sender + " -> " + receiver);
+    public static void broadcast(String from, String to, String msg) {
+        ClientHandler target = clients.get(to);
+        if (target != null) {
+            target.sendMessage("/message " + from + " " + msg);
         } else {
-            ClientHandler senderHandler = clients.get(sender);
-            if (senderHandler != null) {
-                senderHandler.sendMessage("Usuário " + receiver + " não encontrado ou não está conectado.");
-            }
-            System.out.println("Tentativa de envio para usuário inexistente: " + receiver);
+            ClientHandler sender = clients.get(from);
+            if (sender != null)
+                sender.sendMessage("Usuário não encontrado.");
         }
     }
 
-    public static void sendFile(String sender, String receiver, String filename, byte[] fileData) {
-        ClientHandler recipient = clients.get(receiver);
-        if (recipient != null) {
-            recipient.sendFile(sender, filename, fileData);
-            System.out.println("Arquivo encaminhado: " + sender + " -> " + receiver + " (" + filename + ", "
-                    + fileData.length + " bytes)");
-
-            logServer("Transferência de arquivo: " + sender + " -> " + receiver + " (" + filename + ", "
-                    + fileData.length + " bytes)");
+    public static void sendFile(String from, String to, String filename, byte[] data) {
+        ClientHandler target = clients.get(to);
+        if (target != null) {
+            target.sendFile(from, filename, data);
+            log("Arquivo: " + from + " -> " + to + " (" + filename + ")");
         } else {
-            ClientHandler senderHandler = clients.get(sender);
-            if (senderHandler != null) {
-                senderHandler.sendMessage("Usuário " + receiver + " não encontrado ou não está conectado.");
-            }
-            System.out.println("Tentativa de envio de arquivo para usuário inexistente: " + receiver);
+            ClientHandler sender = clients.get(from);
+            if (sender != null)
+                sender.sendMessage("Usuário não encontrado.");
         }
     }
 
     public static void addClient(String name, ClientHandler handler) {
         if (clients.containsKey(name)) {
+            handler.sendMessage("Nome em uso.");
             try {
-                handler.sendMessage("Nome de usuário já em uso. Por favor, escolha outro nome.");
                 handler.socket.close();
-            } catch (IOException e) {
-                System.err.println("Erro ao fechar conexão de usuário duplicado: " + e.getMessage());
+            } catch (IOException ignored) {
             }
             return;
         }
-
         clients.put(name, handler);
-        logServer("Cliente registrado: " + name);
-        broadcastUserList();
+        updateUserList();
+        log("Conectado: " + name);
     }
 
     public static void removeClient(String name) {
         clients.remove(name);
-        broadcastUserList();
-        logServer("Cliente desconectado: " + name);
-        System.out.println(name + " desconectado");
+        updateUserList();
+        log("Desconectado: " + name);
     }
 
     public static Set<String> getConnectedUsers() {
         return clients.keySet();
     }
 
-    private static void broadcastUserList() {
-        StringBuilder userList = new StringBuilder("/users");
-        for (String username : clients.keySet()) {
-            userList.append(" ").append(username);
-        }
+    private static void updateUserList() {
+        StringBuilder list = new StringBuilder("/users");
+        for (String u : clients.keySet())
+            list.append(" ").append(u);
+        for (ClientHandler c : clients.values())
+            c.sendMessage(list.toString());
+    }
 
-        for (ClientHandler client : clients.values()) {
-            client.sendMessage(userList.toString());
+    private static void logConn(String ip) {
+        try (PrintWriter out = new PrintWriter(new FileWriter(LOG_FILE, true))) {
+            out.println("Conexão: " + ip + " - " + sdf.format(new Date()));
+        } catch (IOException ignored) {
         }
     }
 
-    private static void logConnection(String clientAddress) {
+    private static void log(String msg) {
         try (PrintWriter out = new PrintWriter(new FileWriter(LOG_FILE, true))) {
-            out.println("Cliente conectado: " + clientAddress + " - " + dateFormat.format(new Date()));
-        } catch (IOException e) {
-            System.err.println("Erro ao registrar conexão no log: " + e.getMessage());
-        }
-    }
-
-    private static void logServer(String message) {
-        try (PrintWriter out = new PrintWriter(new FileWriter(LOG_FILE, true))) {
-            out.println(dateFormat.format(new Date()) + " - " + message);
-        } catch (IOException e) {
-            System.err.println("Erro ao registrar mensagem no log: " + e.getMessage());
+            out.println(sdf.format(new Date()) + " - " + msg);
+        } catch (IOException ignored) {
         }
     }
 }
