@@ -1,0 +1,61 @@
+2025-04-29 00:32:08 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-04-29 00:32:16
+Cliente conectado: 127.0.0.1 - 2025-04-29 00:32:21
+2025-04-29 00:33:59 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-04-29 00:34:06
+Cliente conectado: 127.0.0.1 - 2025-04-29 00:34:31
+2025-04-29 00:39:20 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-04-29 00:39:46
+Cliente conectado: 127.0.0.1 - 2025-04-29 00:39:54
+Cliente conectado: 127.0.0.1 - 2025-04-29 00:41:00
+2025-05-06 22:20:39 - Servidor iniciado
+2025-05-06 22:20:55 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:21:10
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:21:23
+2025-05-06 22:29:38 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:29:43
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:29:56
+2025-05-06 22:31:01 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:31:06
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:31:20
+2025-05-06 22:38:21 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:38:29
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:38:41
+2025-05-06 22:43:15 - Servidor iniciado
+2025-05-06 22:43:24 - Servidor iniciado
+2025-05-06 22:53:32 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:53:38
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:53:48
+2025-05-06 22:59:16 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:59:22
+Cliente conectado: 127.0.0.1 - 2025-05-06 22:59:31
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:11:14
+2025-05-06 23:28:11 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:28:16
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:28:23
+2025-05-06 23:35:47 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:35:53
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:36:01
+2025-05-06 23:48:17 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:48:24
+2025-05-06 23:48:43 - Cliente registrado: jandi
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:49:00
+2025-05-06 23:49:03 - Cliente registrado: lucas
+2025-05-07 00:00:25 - Transferência de arquivo: lucas -> jandi (teste_trab.txt, 5 bytes)
+2025-05-09 00:11:17 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-09 00:11:23
+2025-05-09 00:11:26 - Cliente registrado: jandi
+Cliente conectado: 127.0.0.1 - 2025-05-09 00:11:31
+2025-05-09 00:11:33 - Cliente registrado: lucas
+2025-05-09 00:13:29 - Transferência de arquivo: lucas -> jandi (teste_trab.txt, 5 bytes)
+2025-05-09 20:03:16 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-09 20:03:27
+2025-05-09 20:03:32 - Cliente registrado: Bob
+Cliente conectado: 127.0.0.1 - 2025-05-09 20:03:38
+2025-05-09 20:03:42 - Cliente registrado: Alice
+2025-05-09 20:06:29 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-09 20:06:34
+2025-05-09 20:06:40 - Cliente registrado: Bob
+Cliente conectado: 127.0.0.1 - 2025-05-09 20:06:46
+2025-05-09 20:06:49 - Cliente registrado: Alice
+2025-05-09 20:07:59 - Transferência de arquivo: Bob -> Alice (teste_trab.txt, 5 bytes)

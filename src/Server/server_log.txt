@@ -1,0 +1,4 @@
+2025-05-06 23:12:55 - Servidor iniciado
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:13:37
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:16:03
+Cliente conectado: 127.0.0.1 - 2025-05-06 23:26:03
