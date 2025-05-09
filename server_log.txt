@@ -56,3 +56,10 @@ Conexão: 127.0.0.1 - 2025-05-09 00:19:34
 Conexão: 127.0.0.1 - 2025-05-09 00:19:42
 2025-05-09 00:19:45 - Conectado: lucas
 2025-05-09 00:21:06 - Arquivo: lucas -> jandi (teste_trab.txt)
+2025-05-09 20:12:45 - Servidor ligado.
+2025-05-09 20:12:51 - Servidor ligado.
+Conexão: 127.0.0.1 - 2025-05-09 20:13:07
+2025-05-09 20:13:10 - Conectado: Bob
+Conexão: 127.0.0.1 - 2025-05-09 20:13:15
+2025-05-09 20:13:17 - Conectado: Alice
+2025-05-09 20:14:33 - Arquivo: Alice -> Bob (teste_trab.txt)
